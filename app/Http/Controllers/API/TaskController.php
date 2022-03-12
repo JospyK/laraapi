@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\Task as TaskResource;
 
-class TaskController extends Controller
+class TaskController extends ApiController
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +16,9 @@ class TaskController extends Controller
      */
     public function index()
     {
-        //
+        // Get all task
+        $tasks = Task::all();
+        return $this->handleResponse(TaskResource::collection($tasks), "Liste de toutes les taches." );
     }
 
     /**

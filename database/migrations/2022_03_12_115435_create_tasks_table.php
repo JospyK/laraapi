@@ -18,7 +18,6 @@ class CreateTasksTable extends Migration
             $table->string('nom');
             $table->text('description')->nullable();
             $table->datetime('delai');
-            $table->text('commentaire');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
