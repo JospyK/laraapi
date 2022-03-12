@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\Task as TaskResource;
+use Validator;
 
 class TaskController extends ApiController
 {
@@ -18,18 +19,9 @@ class TaskController extends ApiController
     {
         // Get all task
         $tasks = Task::all();
-        return $this->handleResponse(TaskResource::collection($tasks), "Liste de toutes les taches." );
+        return $this->handleResponse(TaskResource::collection($tasks), "Liste de toutes les taches.");
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -39,7 +31,28 @@ class TaskController extends ApiController
      */
     public function store(StoreTaskRequest $request)
     {
-        //
+        // validate data
+        $validate_data = Validator::make($request->all(), [
+            "nom" => 'required',
+            "delai" => 'required|after:now',
+        ]);
+
+        if($validate_data->fails()){
+            return $this->handleError($validate_data->errors());
+        }
+
+        // save task
+        //$task = Task::create($request->all());
+
+        $task = Task::create([
+            "nom" => $request->nom,
+            "delai" => $request->delai,
+            "description" => $request->description,
+            "user_id" => 1,
+        ]);
+
+        // return response
+        return $this->handleResponse(new TaskResource($task), 'Tache ajoutée');
     }
 
     /**
@@ -50,18 +63,11 @@ class TaskController extends ApiController
      */
     public function show(Task $task)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Task $task)
-    {
-        //
+        $task = Task::find($task->id);
+        if(is_null($task)){
+            return $this->handleError('Tache non trouvée!');
+        }
+        return $this->handleResponse(new TaskResource($task), 'Votre tache');
     }
 
     /**
@@ -73,7 +79,23 @@ class TaskController extends ApiController
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        $task = Task::find($task->id);
+        // validate data
+        $validate_data = Validator::make($request->all(), [
+            "nom" => 'required',
+            "delai" => 'required',
+        ]);
+        if($validate_data->fails()){
+            return $this->handleError($validate_data->errors());
+        }
+
+        // update task
+        $task->nom = $request->nom;
+        $task->description = $request->description;
+        $task->delai = $request->delai;
+
+        // return response
+        return $this->handleResponse(new TaskResource($task), 'Tache modifée');
     }
 
     /**
@@ -84,6 +106,9 @@ class TaskController extends ApiController
      */
     public function destroy(Task $task)
     {
-        //
+        $task = Task::find($task->id);
+        $task->delete();
+        return $this->handleResponse([], 'Tache supprimée');
     }
+
 }
